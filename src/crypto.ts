@@ -8,7 +8,6 @@ const SCRYPT_P = 1;
 const KEY_LEN = 32;
 
 export function deriveKey(passphrase: string, salt: Buffer): Buffer {
-  console.log("deriving key...");
   return scryptSync(passphrase, salt, KEY_LEN, { N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P });
 }
 
