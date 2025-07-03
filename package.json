@@ -1,0 +1,12 @@
+{
+  "name": "envseal",
+  "version": "0.1.0",
+  "description": "encrypt secrets at rest, inject at runtime",
+  "main": "dist/cli.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": ["env", "secrets", "encryption"],
+  "author": "mgrom",
+  "license": "MIT"
+}
