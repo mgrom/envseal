@@ -6,7 +6,7 @@ const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LEN = 32;
 const IV_LEN = 12;
-const SALT_LEN = 16;
+const SALT_LEN = 16; // 128 bits
 
 export interface EncryptedValue {
   iv: string;
