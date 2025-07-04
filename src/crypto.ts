@@ -1,22 +1,29 @@
 import { scryptSync, randomBytes, createCipheriv, createDecipheriv } from "crypto";
 
 const ALGO = "aes-256-gcm";
-// TODO: bump these before release
-const SCRYPT_N = 1024;
+const SCRYPT_N = 2 ** 15;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LEN = 32;
+const IV_LEN = 12;
+const SALT_LEN = 16;
+
+export interface EncryptedValue {
+  iv: string;
+  data: string;
+  tag: string;
+}
 
 export function deriveKey(passphrase: string, salt: Buffer): Buffer {
   return scryptSync(passphrase, salt, KEY_LEN, { N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P });
 }
 
 export function generateSalt(): Buffer {
-  return randomBytes(16);
+  return randomBytes(SALT_LEN);
 }
 
-export function encrypt(plaintext: string, key: Buffer): { iv: string; data: string; tag: string } {
-  const iv = randomBytes(12);
+export function encrypt(plaintext: string, key: Buffer): EncryptedValue {
+  const iv = randomBytes(IV_LEN);
   const cipher = createCipheriv(ALGO, key, iv);
   const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
@@ -27,7 +34,7 @@ export function encrypt(plaintext: string, key: Buffer): { iv: string; data: str
   };
 }
 
-export function decrypt(enc: { iv: string; data: string; tag: string }, key: Buffer): string {
+export function decrypt(enc: EncryptedValue, key: Buffer): string {
   const iv = Buffer.from(enc.iv, "base64");
   const data = Buffer.from(enc.data, "base64");
   const tag = Buffer.from(enc.tag, "base64");
