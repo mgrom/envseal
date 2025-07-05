@@ -1,12 +1,19 @@
 {
   "name": "envseal",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "encrypt secrets at rest, inject at runtime",
   "main": "dist/cli.js",
+  "bin": {
+    "envseal": "bin/envseal"
+  },
   "scripts": {
     "build": "tsc"
   },
-  "keywords": ["env", "secrets", "encryption"],
+  "keywords": ["env", "secrets", "encryption", "vault"],
   "author": "mgrom",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": ["dist", "bin"]
 }

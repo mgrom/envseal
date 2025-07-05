@@ -1,0 +1,4 @@
+node_modules/
+dist/
+.envseal.vault
+*.js.map
