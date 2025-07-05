@@ -105,7 +105,7 @@ async function main(): Promise<void> {
       const pass = await readPassphrase();
       const secrets = getAllSecrets(vp, pass);
       const childArgs = args.slice(dashIdx + 1);
-      const code = await runCommand(childArgs, { ...process.env as Record<string, string>, ...secrets });
+      const code = await runCommand(childArgs, secrets);
       process.exit(code);
       break;
     }

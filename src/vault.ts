@@ -3,6 +3,7 @@ import * as path from "path";
 import { generateSalt, deriveKey, encrypt, decrypt, EncryptedValue } from "./crypto";
 
 const VAULT_FILE = ".envseal.vault";
+const CURRENT_VERSION = 1;
 
 export interface Vault {
   version: number;
@@ -39,7 +40,7 @@ export function createVault(dir?: string): string {
 function readVault(vaultPath: string): Vault {
   const raw = fs.readFileSync(vaultPath, "utf8");
   const parsed = JSON.parse(raw);
-  if (parsed.version !== 1) {
+  if (parsed.version !== CURRENT_VERSION) {
     throw new Error("unsupported vault version: " + parsed.version);
   }
   return parsed as Vault;
