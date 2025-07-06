@@ -41,6 +41,8 @@ secrets are encrypted with AES-256-GCM. the encryption key is derived from your 
 }
 ```
 
+the vault is discovered by walking up from the current directory (like `.git`).
+
 key names are plaintext. values are encrypted. salt is generated on `init`.
 
 ## security

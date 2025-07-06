@@ -12,7 +12,12 @@ export interface Vault {
 }
 
 export function findVault(from?: string): string | null {
-  let dir = from || process.cwd();
+  let dir: string;
+    try {
+      dir = from || process.cwd();
+    } catch {
+      return null;
+    }
   while (true) {
     const candidate = path.join(dir, VAULT_FILE);
     if (fs.existsSync(candidate)) return candidate;
