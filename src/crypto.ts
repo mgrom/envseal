@@ -1,7 +1,7 @@
 import { scryptSync, randomBytes, createCipheriv, createDecipheriv } from "crypto";
 
 const ALGO = "aes-256-gcm";
-const SCRYPT_N = 2 ** 15;
+const SCRYPT_N = 2 ** 14;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LEN = 32;
