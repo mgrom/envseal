@@ -19,7 +19,7 @@ export function deriveKey(passphrase: string, salt: Buffer): Buffer {
     N: SCRYPT_N,
     r: SCRYPT_R,
     p: SCRYPT_P,
-    maxmem: 128 * SCRYPT_N * SCRYPT_R,
+    maxmem: 64 * 1024 * 1024,
   });
 }
 
