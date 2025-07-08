@@ -6,7 +6,7 @@ const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LEN = 32;
 const IV_LEN = 12;
-const SALT_LEN = 16; // 128 bits
+const SALT_LEN = 16;
 
 export interface EncryptedValue {
   iv: string;
@@ -21,6 +21,10 @@ export function deriveKey(passphrase: string, salt: Buffer): Buffer {
     p: SCRYPT_P,
     maxmem: 64 * 1024 * 1024,
   });
+}
+
+export function generateKeyFile(): Buffer {
+  return randomBytes(KEY_LEN);
 }
 
 export function generateSalt(): Buffer {

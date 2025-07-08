@@ -3,21 +3,21 @@ import * as path from "path";
 import { generateSalt, deriveKey, encrypt, decrypt, EncryptedValue } from "./crypto";
 
 const VAULT_FILE = ".envseal.vault";
-const CURRENT_VERSION = 1;
 
 export interface Vault {
   version: number;
-  salt: string;
+  keyMode: "passphrase" | "keyfile";
+  salt?: string;
   secrets: Record<string, EncryptedValue>;
 }
 
 export function findVault(from?: string): string | null {
   let dir: string;
-    try {
-      dir = from || process.cwd();
-    } catch {
-      return null;
-    }
+  try {
+    dir = from || process.cwd();
+  } catch {
+    return null;
+  }
   while (true) {
     const candidate = path.join(dir, VAULT_FILE);
     if (fs.existsSync(candidate)) return candidate;
@@ -27,17 +27,19 @@ export function findVault(from?: string): string | null {
   }
 }
 
-export function createVault(dir?: string): string {
+export function createVault(dir?: string, keyMode: "passphrase" | "keyfile" = "passphrase"): string {
   const target = path.join(dir || process.cwd(), VAULT_FILE);
   if (fs.existsSync(target)) {
     throw new Error("vault already exists at " + target);
   }
-  const salt = generateSalt();
   const vault: Vault = {
-    version: 1,
-    salt: salt.toString("base64"),
+    version: 2,
+    keyMode,
     secrets: {},
   };
+  if (keyMode === "passphrase") {
+    vault.salt = generateSalt().toString("base64");
+  }
   fs.writeFileSync(target, JSON.stringify(vault, null, 2) + "\n");
   return target;
 }
@@ -45,7 +47,12 @@ export function createVault(dir?: string): string {
 function readVault(vaultPath: string): Vault {
   const raw = fs.readFileSync(vaultPath, "utf8");
   const parsed = JSON.parse(raw);
-  if (parsed.version !== CURRENT_VERSION) {
+  // migrate v1 vaults
+  if (parsed.version === 1) {
+    parsed.version = 2;
+    parsed.keyMode = "passphrase";
+  }
+  if (parsed.version !== 2) {
     throw new Error("unsupported vault version: " + parsed.version);
   }
   return parsed as Vault;
@@ -55,20 +62,33 @@ function writeVault(vaultPath: string, vault: Vault): void {
   fs.writeFileSync(vaultPath, JSON.stringify(vault, null, 2) + "\n");
 }
 
-export function setSecret(vaultPath: string, key: string, value: string, passphrase: string): void {
+export function resolveKey(vault: Vault, passphrase?: string, keyBuf?: Buffer): Buffer {
+  if (vault.keyMode === "keyfile") {
+    if (!keyBuf) throw new Error("keyfile required but not provided");
+    return keyBuf;
+  }
+  // passphrase mode
+  if (!passphrase) throw new Error("passphrase required");
+  if (!vault.salt) throw new Error("vault missing salt");
+  return deriveKey(passphrase, Buffer.from(vault.salt, "base64"));
+}
+
+export function getVaultMode(vaultPath: string): "passphrase" | "keyfile" {
+  return readVault(vaultPath).keyMode;
+}
+
+export function setSecret(vaultPath: string, key: string, value: string, passphrase?: string, keyBuf?: Buffer): void {
   const vault = readVault(vaultPath);
-  const salt = Buffer.from(vault.salt, "base64");
-  const dk = deriveKey(passphrase, salt);
+  const dk = resolveKey(vault, passphrase, keyBuf);
   vault.secrets[key] = encrypt(value, dk);
   writeVault(vaultPath, vault);
 }
 
-export function getSecret(vaultPath: string, key: string, passphrase: string): string {
+export function getSecret(vaultPath: string, key: string, passphrase?: string, keyBuf?: Buffer): string {
   const vault = readVault(vaultPath);
   const enc = vault.secrets[key];
   if (!enc) throw new Error("secret not found: " + key);
-  const salt = Buffer.from(vault.salt, "base64");
-  const dk = deriveKey(passphrase, salt);
+  const dk = resolveKey(vault, passphrase, keyBuf);
   return decrypt(enc, dk);
 }
 
@@ -83,10 +103,9 @@ export function removeKey(vaultPath: string, key: string): void {
   writeVault(vaultPath, vault);
 }
 
-export function getAllSecrets(vaultPath: string, passphrase: string): Record<string, string> {
+export function getAllSecrets(vaultPath: string, passphrase?: string, keyBuf?: Buffer): Record<string, string> {
   const vault = readVault(vaultPath);
-  const salt = Buffer.from(vault.salt, "base64");
-  const dk = deriveKey(passphrase, salt);
+  const dk = resolveKey(vault, passphrase, keyBuf);
   const result: Record<string, string> = {};
   for (const [k, enc] of Object.entries(vault.secrets)) {
     result[k] = decrypt(enc, dk);
