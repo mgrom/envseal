@@ -15,6 +15,18 @@ function requireVault(): string {
   return vp;
 }
 
+function keysDir(): string {
+  return path.join(process.env.HOME || "/root", ".envseal", "keys");
+}
+
+function projectName(): string {
+  return path.basename(process.cwd());
+}
+
+function defaultKeyPath(): string {
+  return path.join(keysDir(), projectName() + ".key");
+}
+
 function resolveKeyFile(): Buffer | null {
   // 1. ENVSEAL_KEY — raw base64 key in env
   const envKey = process.env.ENVSEAL_KEY;
@@ -30,21 +42,10 @@ function resolveKeyFile(): Buffer | null {
     return Buffer.from(fs.readFileSync(envKeyFile, "utf8").trim(), "base64");
   }
 
-  // 3. .envseal.key in cwd or parent dirs
-  let dir: string;
-  try {
-    dir = process.cwd();
-  } catch {
-    return null;
-  }
-  while (true) {
-    const candidate = path.join(dir, ".envseal.key");
-    if (fs.existsSync(candidate)) {
-      return Buffer.from(fs.readFileSync(candidate, "utf8").trim(), "base64");
-    }
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
+  // 3. ~/.envseal/keys/<project-dir-name>.key
+  const autoKey = defaultKeyPath();
+  if (fs.existsSync(autoKey)) {
+    return Buffer.from(fs.readFileSync(autoKey, "utf8").trim(), "base64");
   }
 
   return null;
@@ -80,16 +81,12 @@ async function main(): Promise<void> {
     }
     case "keygen": {
       const outIdx = args.indexOf("--out");
-      const outPath = outIdx !== -1 ? args[outIdx + 1] : ".envseal.key";
-      if (!outPath) {
-        console.error("usage: envseal keygen [--out PATH]");
-        process.exit(1);
-      }
+      const outPath = outIdx !== -1 ? args[outIdx + 1] : defaultKeyPath();
       const key = generateKeyFile();
-      const dir = path.dirname(outPath);
-      if (dir && !fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      const outDir = path.dirname(outPath);
+      if (outDir && !fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true, mode: 0o700 });
       fs.writeFileSync(outPath, key.toString("base64") + "\n", { mode: 0o400 });
-      console.log(`key written to ${outPath} (0400)`);
+      console.log(`key written to ${outPath}`);
       break;
     }
     case "set": {
