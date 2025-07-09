@@ -7,15 +7,21 @@
     "envseal": "bin/envseal"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "tsc"
   },
-  "keywords": ["env", "secrets", "encryption", "vault"],
+  "keywords": ["env", "secrets", "encryption", "vault", "dotenv", "security"],
   "author": "mgrom",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mgrom/envseal.git"
+  },
+  "homepage": "https://github.com/mgrom/envseal",
   "engines": {
     "node": ">=18"
   },
-  "files": ["dist", "bin"],
+  "files": ["dist", "bin", "LICENSE", "README.md"],
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.5.0"

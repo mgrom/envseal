@@ -1,0 +1,7 @@
+src/
+tsconfig.json
+.envseal.vault
+.envseal.key
+node_modules/
+*.ts
+!*.d.ts
