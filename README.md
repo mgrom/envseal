@@ -29,7 +29,7 @@ envseal init --keyfile
 # set secrets (picks up key automatically or via env)
 ENVSEAL_KEY_FILE=/etc/envseal/keys/myapp.key envseal set DATABASE_URL "postgres://..."
 
-# in systemd unit — no interaction needed
+# in systemd unit - no interaction needed
 # Environment=ENVSEAL_KEY_FILE=/etc/envseal/keys/myapp.key
 # ExecStart=envseal run -- node server.js
 ```
@@ -76,9 +76,9 @@ the vault (`.envseal.vault`) stores key names in plaintext and values as encrypt
 
 protects secrets at rest and from automated exfiltration (scanners grepping for `.env`, `sk-`, `ghp_`, private keys). an attacker with disk access sees encrypted blobs, not plaintext.
 
-in keyfile mode, the key and vault live in different locations with different permissions — attacker needs both.
+in keyfile mode, the key and vault live in different locations with different permissions - attacker needs both.
 
-**not** a defense against an active attacker with same-UID shell access — they can read process memory or attach a debugger. no userspace tool can prevent that.
+**not** a defense against an active attacker with same-UID shell access - they can read process memory or attach a debugger. no userspace tool can prevent that.
 
 ## license
 
