@@ -1,5 +1,5 @@
 {
-  "name": "envseal",
+  "name": "@boltpl/envseal",
   "version": "1.0.0",
   "description": "encrypt secrets at rest, inject at runtime",
   "main": "dist/cli.js",
